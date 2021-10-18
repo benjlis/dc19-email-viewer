@@ -8,9 +8,11 @@ from st_aggrid import AgGrid
 from st_aggrid.grid_options_builder import GridOptionsBuilder
 
 
-st.set_page_config(page_title="FOIA Explorer: COVID-19 Emails", layout="wide")
-st.title("FOIA Explorer: COVID-19 Emails")
-
+TITLE = "Documenting COVID-19 Email Explorer"
+st.set_page_config(page_title=TITLE, layout="wide")
+st.title(TITLE)
+st.markdown("A query tool for exploring the emails of \
+[Documenting COVID-19](https://documentingcovid19.io).")
 
 # initialize database connection - uses st.cache to only run once
 @st.cache(allow_output_mutation=True,
@@ -46,6 +48,17 @@ org_list = get_entity_list("= 'ORG' ")
 loc_list = get_entity_list("in ('GPE', 'LOC', 'NORP', 'FAC') ")
 
 
+"""### Search Emails """
+with st.form(key='query_params'):
+    cols = st.columns(2)
+    begin_date = cols[0].date_input('Start Date:', datetime.date(2020, 1, 23))
+    end_date = cols[1].date_input('End Date:', datetime.date(2020, 5, 6))
+    persons = st.multiselect('Person(s):', person_list)
+    orgs = st.multiselect('Organization(s):', org_list)
+    locations = st.multiselect('Location(s):', loc_list)
+    query = st.form_submit_button(label='Execute Search')
+
+
 st.selectbox('FOIA', ["Fauci Emails"])
 """
 The COVID-19 releated emails of Dr. Anthony Fauci, director of the National
@@ -70,16 +83,6 @@ c = alt.Chart(cntsdf).mark_bar().encode(
     y=alt.Y('emails:Q', scale=alt.Scale(domain=(0, 60)))
     )
 st.altair_chart(c, use_container_width=True)
-
-"""## Search Emails """
-with st.form(key='query_params'):
-    cols = st.columns(2)
-    begin_date = cols[0].date_input('Start Date', datetime.date(2020, 1, 23))
-    end_date = cols[1].date_input('End Date', datetime.date(2020, 5, 6))
-    persons = st.multiselect('Person(s):', person_list)
-    orgs = st.multiselect('Organization(s):', org_list)
-    locations = st.multiselect('Location(s):', loc_list)
-    query = st.form_submit_button(label='Execute Search')
 
 
 """ ## Search Results """
