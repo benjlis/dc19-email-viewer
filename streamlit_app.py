@@ -1,7 +1,7 @@
 """Streamlit app for FOIA Explorer COVID-19 Emails"""
 import streamlit as st
 import pandas as pd
-import altair as alt
+# import altair as alt
 import psycopg2
 import datetime
 from st_aggrid import AgGrid
@@ -11,7 +11,7 @@ from st_aggrid.grid_options_builder import GridOptionsBuilder
 title = "Documenting COVID-19 Email Explorer"
 st.set_page_config(page_title=title, layout="wide")
 st.title(title)
-st.markdown("A query tool for exploring the emails of \
+st.markdown("A finding aid for the emails of \
 [Documenting COVID-19](https://documentingcovid19.io).")
 
 # initialize database connection - uses st.cache to only run once
@@ -61,33 +61,7 @@ with st.form(key='query_params'):
     query = st.form_submit_button(label='Execute Search')
 
 
-st.selectbox('FOIA', ["Fauci Emails"])
-"""
-The COVID-19 releated emails of Dr. Anthony Fauci, director of the National
-Institute of Allergy and Infectious Diseases.
-- Source: MuckRock/DocumentCloud | Contributor: Jason Leopold
-- https://www.documentcloud.org/documents/20793561-leopold-nih-foia-anthony-fauci-emails
-"""
-
-"""## Daily Email Volume, January - May 2020"""
-
-emcnts = """
-select date(sent) date, count(*) emails
-    from covid19.emails
-    where sent >= '2020-01-01'
-    group by date
-    order by date;
-"""
-
-cntsdf = pd.read_sql_query(emcnts, conn)
-c = alt.Chart(cntsdf).mark_bar().encode(
-    x=alt.X('date:T', scale=alt.Scale(domain=('2020-01-23', '2020-05-06'))),
-    y=alt.Y('emails:Q', scale=alt.Scale(domain=(0, 60)))
-    )
-st.altair_chart(c, use_container_width=True)
-
-
-""" ## Search Results """
+""" #### Search Results """
 selfrom = """
 select sent,
        coalesce(subject, '') subject,
@@ -120,6 +94,7 @@ if entities:
     qry_explain += f"and email references at least one of {entincl}"
 st.write(qry_explain)
 # execute query
+where_ent = "and 1=0 "
 emqry = selfrom + where + where_ent + orderby
 emdf = pd.read_sql_query(emqry, conn)
 # emdf['sent'] = pd.to_datetime(emdf['sent'], utc=True)
@@ -155,10 +130,25 @@ fauci_{pg}.pdf" width="100%" height="1100">', unsafe_allow_html=True)
 else:
     st.write('Select row to view email')
 
+#  emcnts = """
+# select date(sent) date, count(*) emails
+#    from covid19.emails
+#    where sent >= '2020-01-01'
+#    group by date
+#    order by date;
+# """
+
+# cntsdf = pd.read_sql_query(emcnts, conn)
+# c = alt.Chart(cntsdf).mark_bar().encode(
+#    x=alt.X('date:T', scale=alt.Scale(domain=('2020-01-23', '2020-05-06'))),
+#    y=alt.Y('emails:Q', scale=alt.Scale(domain=(0, 60)))
+#    )
+# st.altair_chart(c, use_container_width=True)
+
 """
 ## About
-The FOIA Explorer and associated tools were created by Columbia
-Univesity's [History Lab](http://history-lab.org) under a grant from the Mellon
-Foundation's [Email Archives: Building Capacity and Community]
+The Documenting COVID-19 Email Explorer and associated tools were created by
+Columbia Univesity's [History Lab](http://history-lab.org) under a grant from
+the Mellon Foundation's [Email Archives: Building Capacity and Community]
 (https://emailarchivesgrant.library.illinois.edu/blog/) program.
 """
