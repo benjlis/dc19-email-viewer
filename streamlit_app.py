@@ -52,8 +52,8 @@ entity_list = get_list('select entity from covid19.entities order by entity')
 """**Enter search criteria:**"""
 with st.form(key='query_params'):
     cols = st.columns(2)
-    begin_date = cols[0].date_input('Start Date:', datetime.date(2020, 1, 23))
-    end_date = cols[1].date_input('End Date:', datetime.date(2020, 5, 6))
+    begin_date = cols[0].date_input('Start Date:', datetime.date(2020, 1, 1))
+    end_date = cols[1].date_input('End Date:', datetime.date(2021, 6, 1))
     categories = cols[0].multiselect('Categor(ies):', category_list)
     states = cols[1].multiselect('State(s):', state_list)
     files = st.multiselect('File(s):', file_list)
