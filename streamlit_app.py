@@ -38,15 +38,25 @@ def get_list(qry):
     return(lov)
 
 
+@st.cache
+def get_entity_list(qual):
+    return get_list(f'select entity from covid19.entities \
+                         where entity_id > 515 and enttype {qual} \
+                         order by entity')
+
+
 conn = init_connection()
 
 # build dropdown lists for entities
-state_list = get_list('select state from covid19.states \
-where length(state) = 2 order by state')
-category_list = get_list('select tag from covid19.tags order by upper(tag)')
-file_list = get_list('select distinct foiarchive_file from covid19.files f \
-join covid19.emails e on f.file_id = e.file_id order by foiarchive_file')
-entity_list = get_list('select entity from covid19.entities order by entity')
+# state_list = get_list('select state from covid19.states \
+# where length(state) = 2 order by state')
+# category_list = get_list('select tag from covid19.tags order by upper(tag)')
+# file_list = get_list('select distinct foiarchive_file from covid19.files f \
+# join covid19.emails e on f.file_id = e.file_id order by foiarchive_file')
+# entity_list = get_list('select entity from covid19.entities order by entity')
+person_list = get_entity_list("= 'PERSON' ")
+org_list = get_entity_list("= 'ORG' ")
+loc_list = get_entity_list("in ('GPE', 'LOC', 'NORP', 'FAC') ")
 
 
 """**Enter search criteria:**"""
@@ -54,14 +64,18 @@ with st.form(key='query_params'):
     cols = st.columns(2)
     begin_date = cols[0].date_input('Start Date:', datetime.date(2020, 1, 1))
     end_date = cols[1].date_input('End Date:', datetime.date(2021, 6, 1))
-    categories = cols[0].multiselect('Categor(ies):', category_list)
-    states = cols[1].multiselect('State(s):', state_list)
-    files = st.multiselect('File(s):', file_list)
-    entities = st.multiselect('Entit(ies):', entity_list)
+    # categories = cols[0].multiselect('Categor(ies):', category_list)
+    # states = cols[1].multiselect('State(s):', state_list)
+    # files = st.multiselect('File(s):', file_list)
+    # entities = st.multiselect('Entit(ies):', entity_list)
+    persons = st.multiselect('Person(s):', person_list)
+    orgs = st.multiselect('Organization(s):', org_list)
+    locations = st.multiselect('Location(s):', loc_list)
     query = st.form_submit_button(label='Execute Search')
 
 
 """ #### Search Results """
+entities = persons + orgs + locations
 selfrom = """
 select sent,
        coalesce(subject, '') subject,
