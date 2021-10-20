@@ -76,22 +76,15 @@ with st.form(key='query_params'):
 
 """ #### Search Results """
 entities = persons + orgs + locations
-selfrom = """
-select sent,
-       coalesce(subject, '') subject,
-       coalesce(topic, '') topic,
-       coalesce(from_email, '') "from",
-       coalesce(to_emails, '') "to",
-       -- coalesce(cc_emails, '') cc,
-       -- coalesce(substr(body, 1, 1024), '') body,
-       e.email_id,
-       file_pg_start pg_number
-    from covid19.emails e left join covid19.top_topic_emails t
-        on (e.email_id = t.email_id)"""
-where = f"where sent between '{begin_date}' and '{end_date}' "
+selfrom = """select sent, coalesce(subject, '') subject, pg_cnt,
+       coalesce(from_email, '') "from", coalesce(to_emails, '') "to",
+       coalesce(topic, '') topic, array[]::text[] entities,
+       source_url, scrape_url file_description, email_id, file_id,
+       file_pg_start from covid19.dc19_emails """
+where = f"where sent between '{begin_date}' and '{end_date}'"
+qry_explain = where
 where_ent = ''
 orderby = 'order by sent'
-qry_explain = where
 if entities:
     # build entity in list
     entincl = '('
@@ -108,7 +101,6 @@ if entities:
     qry_explain += f"and email references at least one of {entincl}"
 st.write(qry_explain)
 # execute query
-where_ent = "and 1=0 "
 emqry = selfrom + where + where_ent + orderby
 emdf = pd.read_sql_query(emqry, conn)
 # emdf['sent'] = pd.to_datetime(emdf['sent'], utc=True)
@@ -161,7 +153,10 @@ else:
 
 """
 ## About
-The Documenting COVID-19 Email Explorer and associated tools were created by
+All emails and documents that appear in this app are sourced from the
+Documenting COVID-19 project of the Brown Institute for Media Innovation.
+
+The Email Explorer and associated processing tools were created by
 Columbia Univesity's [History Lab](http://history-lab.org) under a grant from
 the Mellon Foundation's [Email Archives: Building Capacity and Community]
 (https://emailarchivesgrant.library.illinois.edu/blog/) program.
