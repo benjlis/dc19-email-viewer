@@ -1,7 +1,7 @@
 """Streamlit app for FOIA Explorer COVID-19 Emails"""
 import streamlit as st
 import pandas as pd
-# import altair as alt
+import altair as alt
 import psycopg2
 import datetime
 from st_aggrid import AgGrid
@@ -47,6 +47,15 @@ def get_entity_list(qual):
 
 conn = init_connection()
 
+emcnts = """select date(sent) date, count(*) emails from covid19.dc19_emails \
+where sent >= '2020-01-01' group by date order by date"""
+cntsdf = pd.read_sql_query(emcnts, conn)
+c = alt.Chart(cntsdf).mark_bar().encode(
+    x=alt.X('date:T', scale=alt.Scale(domain=('2020-01-01', '2021-06-01'))),
+    y=alt.Y('emails:Q', scale=alt.Scale(domain=(0, 500)))
+    )
+st.altair_chart(c, use_container_width=True)
+
 # build dropdown lists for entities
 # state_list = get_list('select state from covid19.states \
 # where length(state) = 2 order by state')
@@ -62,8 +71,8 @@ loc_list = get_entity_list("in ('GPE', 'LOC', 'NORP', 'FAC') ")
 """**Enter search criteria:**"""
 with st.form(key='query_params'):
     cols = st.columns(2)
-    begin_date = cols[0].date_input('Start Date:', datetime.date(2020, 1, 1))
-    end_date = cols[1].date_input('End Date:', datetime.date(2021, 6, 1))
+    begin_date = cols[0].date_input('Start Date:', datetime.date(2020, 3, 19))
+    end_date = cols[1].date_input('End Date:', datetime.date(2020, 3, 20))
     # categories = cols[0].multiselect('Categor(ies):', category_list)
     # states = cols[1].multiselect('State(s):', state_list)
     # files = st.multiselect('File(s):', file_list)
@@ -80,7 +89,7 @@ selfrom = """select sent, coalesce(subject, '') subject, pg_cnt,
        coalesce(from_email, '') "from", coalesce(to_emails, '') "to",
        coalesce(topic, '') topic, array[]::text[] entities,
        source_url, scrape_url file_description, email_id, file_id,
-       file_pg_start from covid19.dc19_emails """
+       file_pg_start pg_number from covid19.dc19_emails """
 where = f"where sent between '{begin_date}' and '{end_date}'"
 qry_explain = where
 where_ent = ''
@@ -127,29 +136,15 @@ selected = grid_response['selected_rows']
 if selected:
     """## Email Preview"""
     pg = int(selected[0]["pg_number"])
-    doc_url = f'https://s3.documentcloud.org/documents/20793561/leopold-nih-\
-foia-anthony-fauci-emails.pdf#page={pg}'
-    st.write(f'View the full document on DocumentCloud: {doc_url}')
-    st.markdown(f'<iframe src="https://drive.google.com/viewerng/viewer?\
-embedded=true&url=https://foiarchive-covid-19.s3.amazonaws.com/fauci/pdfs/\
-fauci_{pg}.pdf" width="100%" height="1100">', unsafe_allow_html=True)
+    source_url = selected[0]["source_url"]
+    doc_url = source_url + f'#page={pg}'
+    st.write(f'Email in source document: {doc_url}')
+    st.write(f'Source file description: {selected[0]["file_description"]}')
+#    st.markdown(f'<iframe src="https://drive.google.com/viewerng/viewer?\
+# embedded=true&url=https://foiarchive-covid-19.s3.amazonaws.com/fauci/pdfs/\
+# fauci_{pg}.pdf" width="100%" height="1100">', unsafe_allow_html=True)
 else:
     st.write('Select row to view email')
-
-#  emcnts = """
-# select date(sent) date, count(*) emails
-#    from covid19.emails
-#    where sent >= '2020-01-01'
-#    group by date
-#    order by date;
-# """
-
-# cntsdf = pd.read_sql_query(emcnts, conn)
-# c = alt.Chart(cntsdf).mark_bar().encode(
-#    x=alt.X('date:T', scale=alt.Scale(domain=('2020-01-23', '2020-05-06'))),
-#    y=alt.Y('emails:Q', scale=alt.Scale(domain=(0, 60)))
-#    )
-# st.altair_chart(c, use_container_width=True)
 
 """
 ## About
