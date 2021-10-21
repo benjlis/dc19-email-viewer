@@ -134,9 +134,12 @@ grid_response = AgGrid(emdf,
 selected = grid_response['selected_rows']
 # st.write(selected)
 if selected:
-    """## Email Preview"""
-    st.write(f'Email in source document: {selected[0]["source_url_email"]}')
-    st.write(f'Source file description: {selected[0]["file_description"]}')
+    """### Email Preview"""
+    cols = st.columns(4)
+    cols[0].markdown('Email in source document:')
+    cols[1].markdown(f'{selected[0]["source_url_email"]}')
+    cols[0].markdown('Source document description:')
+    cols[1].markdown(f'{selected[0]["file_description"]}')
 #    st.markdown(f'<iframe src="https://drive.google.com/viewerng/viewer?\
 # embedded=true&url=https://foiarchive-covid-19.s3.amazonaws.com/fauci/pdfs/\
 # fauci_{pg}.pdf" width="100%" height="1100">', unsafe_allow_html=True)
@@ -144,12 +147,14 @@ else:
     st.write('Select row to view email')
 
 """
-## About
-All emails and documents that appear in this app are sourced from the
-Documenting COVID-19 project of the Brown Institute for Media Innovation.
+### About
+All emails and documents that appear in this app are from the [Documenting
+COVID-19 project of the Brown Institute for Media Innovation]
+(https://documentingcovid19.io), so any use of data from it must attribute the
+"Documenting COVID-19 project at The Brown Institute for Media Innovation."
 
-The Email Explorer and associated processing tools were created by
-Columbia Univesity's [History Lab](http://history-lab.org) under a grant from
-the Mellon Foundation's [Email Archives: Building Capacity and Community]
+Columbia Univesity's [History Lab](http://history-lab.org) created this app and
+associated processing tools under a grant from the Mellon Foundation's [Email
+Archives: Building Capacity and Community]
 (https://emailarchivesgrant.library.illinois.edu/blog/) program.
 """
