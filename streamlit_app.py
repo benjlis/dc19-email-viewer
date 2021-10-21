@@ -45,11 +45,17 @@ def get_entity_list(qual):
                          order by entity')
 
 
+@st.cache(hash_funcs={psycopg2.extensions.connection: lambda _: None})
+def get_data_table(qry):
+    return pd.read_sql_query(qry, conn)
+
+
 conn = init_connection()
 
 emcnts = """select date(sent) date, count(*) emails from covid19.dc19_emails \
 where sent >= '2020-01-01' group by date order by date"""
-cntsdf = pd.read_sql_query(emcnts, conn)
+cntsdf = get_data_table(emcnts)
+#cntsdf = pd.read_sql_query(emcnts, conn)
 c = alt.Chart(cntsdf).mark_bar().encode(
     x=alt.X('date:T', scale=alt.Scale(domain=('2020-01-01', '2021-06-01'))),
     y=alt.Y('emails:Q', scale=alt.Scale(domain=(0, 500)))
@@ -111,7 +117,8 @@ if entities:
 st.write(qry_explain)
 # execute query
 emqry = selfrom + where + where_ent + orderby
-emdf = pd.read_sql_query(emqry, conn)
+emdf = get_data_table(emqry)
+# emdf = pd.read_sql_query(emqry, conn)
 # emdf['sent'] = pd.to_datetime(emdf['sent'], utc=True)
 # download results as CSV
 csv = emdf.to_csv().encode('utf-8')
@@ -125,6 +132,7 @@ gb.configure_pagination(paginationAutoPageSize=True)
 gb.configure_grid_options(domLayout='normal')
 gridOptions = gb.build()
 
+# update_mode='SELECTION_CHANGED',
 grid_response = AgGrid(emdf,
                        gridOptions=gridOptions,
                        return_mode_values='AS_INPUT',
