@@ -88,7 +88,7 @@ entities = persons + orgs + locations
 selfrom = """select sent, coalesce(subject, '') subject, pg_cnt,
        coalesce(from_email, '') "from", coalesce(to_emails, '') "to",
        coalesce(topic, '') topic, array[]::text[] entities,
-       source_url, scrape_url file_description, email_id, file_id,
+       source_url_email, scrape_url file_description, email_id, file_id,
        file_pg_start pg_number from covid19.dc19_emails """
 where = f"where sent between '{begin_date}' and '{end_date}'"
 qry_explain = where
@@ -135,10 +135,7 @@ selected = grid_response['selected_rows']
 # st.write(selected)
 if selected:
     """## Email Preview"""
-    pg = int(selected[0]["pg_number"])
-    source_url = selected[0]["source_url"]
-    doc_url = source_url + f'#page={pg}'
-    st.write(f'Email in source document: {doc_url}')
+    st.write(f'Email in source document: {selected[0]["source_url_email"]}')
     st.write(f'Source file description: {selected[0]["file_description"]}')
 #    st.markdown(f'<iframe src="https://drive.google.com/viewerng/viewer?\
 # embedded=true&url=https://foiarchive-covid-19.s3.amazonaws.com/fauci/pdfs/\
