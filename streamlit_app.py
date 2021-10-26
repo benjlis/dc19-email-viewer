@@ -93,9 +93,9 @@ with st.form(key='query_params'):
 entities = persons + orgs + locations
 selfrom = """select sent, coalesce(subject, '') subject, pg_cnt,
        coalesce(from_email, '') "from", coalesce(to_emails, '') "to",
-       coalesce(topic, '') topic, array[]::text[] entities,
-       source_url_email, scrape_url file_description, email_id, file_id,
-       file_pg_start pg_number from covid19.dc19_emails """
+       coalesce(topic, '') topic, entities,
+       source_email_url, preview_email_url, scrape_url file_description,
+       email_id, file_id, file_pg_start pg_number from covid19.dc19_emails """
 where = f"where sent between '{begin_date}' and '{end_date}'"
 qry_explain = where
 where_ent = ''
@@ -132,7 +132,6 @@ gb.configure_pagination(paginationAutoPageSize=True)
 gb.configure_grid_options(domLayout='normal')
 gridOptions = gb.build()
 
-# update_mode='SELECTION_CHANGED',
 grid_response = AgGrid(emdf,
                        gridOptions=gridOptions,
                        return_mode_values='AS_INPUT',
@@ -143,14 +142,14 @@ selected = grid_response['selected_rows']
 # st.write(selected)
 if selected:
     """### Email Preview"""
+    st.markdown(f'<iframe src="https://drive.google.com/viewerng/viewer?\
+embedded=true&url={selected[0]["preview_email_url"]}" width="100%" \
+height="1100">', unsafe_allow_html=True)
     cols = st.columns(4)
     cols[0].markdown('Email in source document:')
-    cols[1].markdown(f'{selected[0]["source_url_email"]}')
+    cols[1].markdown(f'{selected[0]["source_email_url"]}')
     cols[0].markdown('Source document description:')
     cols[1].markdown(f'{selected[0]["file_description"]}')
-#    st.markdown(f'<iframe src="https://drive.google.com/viewerng/viewer?\
-# embedded=true&url=https://foiarchive-covid-19.s3.amazonaws.com/fauci/pdfs/\
-# fauci_{pg}.pdf" width="100%" height="1100">', unsafe_allow_html=True)
 else:
     st.write('Select row to view email')
 
