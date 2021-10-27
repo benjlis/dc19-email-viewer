@@ -8,7 +8,7 @@ from st_aggrid import AgGrid
 from st_aggrid.grid_options_builder import GridOptionsBuilder
 
 
-title = "Documenting COVID-19 Email Explorer"
+title = "Documenting COVID-19 Explorer"
 st.set_page_config(page_title=title, layout="wide")
 st.title(title)
 st.markdown("A finding aid for the emails of \
@@ -141,15 +141,13 @@ grid_response = AgGrid(emdf,
 selected = grid_response['selected_rows']
 # st.write(selected)
 if selected:
-    """### Email Preview"""
+    """### Document Preview"""
     st.markdown(f'<iframe src="https://drive.google.com/viewerng/viewer?\
 embedded=true&url={selected[0]["preview_email_url"]}" width="100%" \
 height="1100">', unsafe_allow_html=True)
-    cols = st.columns(4)
-    cols[0].markdown('Email in source document:')
-    cols[1].markdown(f'{selected[0]["source_email_url"]}')
-    cols[0].markdown('Source document description:')
-    cols[1].markdown(f'{selected[0]["file_description"]}')
+    st.markdown(f'Document in source file (may load slowly for large files):\
+    {selected[0]["source_email_url"]}')
+    st.markdown(f'Source file description: {selected[0]["source_email_url"]}')
 else:
     st.write('Select row to view email')
 
