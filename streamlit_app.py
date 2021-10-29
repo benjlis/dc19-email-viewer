@@ -67,7 +67,7 @@ org_list = get_entity_list("= 'ORG' ")
 loc_list = get_entity_list("in ('GPE', 'LOC', 'NORP', 'FAC') ")
 
 
-"""**Enter search criteria:**"""
+"""**Enter query criteria:**"""
 with st.form(key='query_params'):
     cols = st.columns(2)
     begin_date = cols[0].date_input('Start Date:', datetime.date(2020, 3, 19))
@@ -75,10 +75,14 @@ with st.form(key='query_params'):
     persons = st.multiselect('Person(s):', person_list)
     orgs = st.multiselect('Organization(s):', org_list)
     locations = st.multiselect('Location(s):', loc_list)
-    query = st.form_submit_button(label='Execute Search')
+    ftq_text = st.text_input('Full Text Search:', '',
+                             help='Perform full text search. Use double quotes \
+                             for phrases, OR for logical or, and - for \
+                             logical not.')
+    query = st.form_submit_button(label='Execute Query')
 
 
-""" #### Search Results """
+""" #### Query Results """
 entities = persons + orgs + locations
 selfrom = """select sent, coalesce(subject, '') subject, pg_cnt,
        coalesce(from_email, '') "from", coalesce(to_emails, '') "to",
@@ -87,7 +91,7 @@ selfrom = """select sent, coalesce(subject, '') subject, pg_cnt,
        email_id, file_id, file_pg_start pg_number from covid19.dc19_emails """
 where = f"where sent between '{begin_date}' and '{end_date}'"
 qry_explain = where
-where_ent = ''
+where_ent = where_ft = ''
 orderby = 'order by sent'
 if entities:
     # build entity in list
@@ -96,16 +100,19 @@ if entities:
         entincl += f"'{e}', "
     entincl = entincl[:-2] + ')'
     # form subquery
-    where_ent = """
-    and e.email_id in
+    where_ent = """and e.email_id in
         (select eem.email_id
             from covid19.entities ent join covid19.entity_emails eem
                 on (ent.entity_id = eem.entity_id)
             where ent.entity in """ + f'{entincl}) '
     qry_explain += f"and email references at least one of {entincl}"
+if ftq_text:
+    where_ft = f"and to_tsvector('english', body) @@ websearch_to_tsquery\
+('english', '{ftq_text}')"
+    qry_explain += f"and text body contains '{ftq_text}'"
 st.write(qry_explain)
 # execute query
-emqry = selfrom + where + where_ent + orderby
+emqry = selfrom + where + where_ent + where_ft + orderby
 emdf = get_data_table(emqry)
 # download results as CSV
 csv = emdf.to_csv().encode('utf-8')
