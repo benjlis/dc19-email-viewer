@@ -143,7 +143,7 @@ embedded=true&url={selected[0]["preview_email_url"]}" width="100%" \
 height="1100">', unsafe_allow_html=True)
     st.markdown(f'Document in source file (may load slowly for large files):\
     {selected[0]["source_email_url"]}')
-    st.markdown(f'Source file description: {selected[0]["source_email_url"]}')
+    st.markdown(f'Source file description: {selected[0]["file_description"]}')
 else:
     st.write('Select row to view document')
 
