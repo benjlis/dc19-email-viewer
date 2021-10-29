@@ -55,7 +55,6 @@ conn = init_connection()
 emcnts = """select date(sent) date, count(*) emails from covid19.dc19_emails \
 where sent >= '2020-01-01' group by date order by date"""
 cntsdf = get_data_table(emcnts)
-#cntsdf = pd.read_sql_query(emcnts, conn)
 c = alt.Chart(cntsdf).mark_bar().encode(
     x=alt.X('date:T', scale=alt.Scale(domain=('2020-01-01', '2021-06-01'))),
     y=alt.Y('emails:Q', scale=alt.Scale(domain=(0, 500)))
@@ -63,12 +62,6 @@ c = alt.Chart(cntsdf).mark_bar().encode(
 st.altair_chart(c, use_container_width=True)
 
 # build dropdown lists for entities
-# state_list = get_list('select state from covid19.states \
-# where length(state) = 2 order by state')
-# category_list = get_list('select tag from covid19.tags order by upper(tag)')
-# file_list = get_list('select distinct foiarchive_file from covid19.files f \
-# join covid19.emails e on f.file_id = e.file_id order by foiarchive_file')
-# entity_list = get_list('select entity from covid19.entities order by entity')
 person_list = get_entity_list("= 'PERSON' ")
 org_list = get_entity_list("= 'ORG' ")
 loc_list = get_entity_list("in ('GPE', 'LOC', 'NORP', 'FAC') ")
@@ -79,10 +72,6 @@ with st.form(key='query_params'):
     cols = st.columns(2)
     begin_date = cols[0].date_input('Start Date:', datetime.date(2020, 3, 19))
     end_date = cols[1].date_input('End Date:', datetime.date(2020, 3, 20))
-    # categories = cols[0].multiselect('Categor(ies):', category_list)
-    # states = cols[1].multiselect('State(s):', state_list)
-    # files = st.multiselect('File(s):', file_list)
-    # entities = st.multiselect('Entit(ies):', entity_list)
     persons = st.multiselect('Person(s):', person_list)
     orgs = st.multiselect('Organization(s):', org_list)
     locations = st.multiselect('Location(s):', loc_list)
@@ -118,8 +107,6 @@ st.write(qry_explain)
 # execute query
 emqry = selfrom + where + where_ent + orderby
 emdf = get_data_table(emqry)
-# emdf = pd.read_sql_query(emqry, conn)
-# emdf['sent'] = pd.to_datetime(emdf['sent'], utc=True)
 # download results as CSV
 csv = emdf.to_csv().encode('utf-8')
 st.download_button(label="CSV download", data=csv,
@@ -149,7 +136,7 @@ height="1100">', unsafe_allow_html=True)
     {selected[0]["source_email_url"]}')
     st.markdown(f'Source file description: {selected[0]["source_email_url"]}')
 else:
-    st.write('Select row to view email')
+    st.write('Select row to view document')
 
 """
 ### About
