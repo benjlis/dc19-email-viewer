@@ -107,6 +107,8 @@ if entities:
             where ent.entity in """ + f'{entincl}) '
     qry_explain += f"and email references at least one of {entincl}"
 if ftq_text:
+    if ftq_text[0] == "'":         # replace single quote with double
+        ftq_text = '"' + ftq_text[1:-1:] + '"'
     where_ft = f"and to_tsvector('english', body) @@ websearch_to_tsquery\
 ('english', '{ftq_text}')"
     qry_explain += f"and text body contains '{ftq_text}'"
