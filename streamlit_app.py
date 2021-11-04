@@ -89,7 +89,7 @@ selfrom = """select sent, coalesce(subject, '') subject, pg_cnt,
        coalesce(topic, '') topic, entities,
        source_email_url, preview_email_url, scrape_url file_description,
        email_id, file_id, file_pg_start pg_number from covid19.dc19_emails """
-where = f"where sent between '{begin_date}' and '{end_date}'"
+where = f"where sent between '{begin_date}' and '{end_date}' "
 qry_explain = where
 where_ent = where_ft = ''
 orderby = 'order by sent'
@@ -100,11 +100,11 @@ if entities:
         entincl += f"'{e}', "
     entincl = entincl[:-2] + ')'
     # form subquery
-    where_ent = """and e.email_id in
+    where_ent = """and email_id in
         (select eem.email_id
             from covid19.entities ent join covid19.entity_emails eem
                 on (ent.entity_id = eem.entity_id)
-            where ent.entity in """ + f'{entincl}) '
+            where ent.entity_id > 515 and ent.entity in """ + f'{entincl}) '
     qry_explain += f"and email references at least one of {entincl}"
 if ftq_text:
     if ftq_text[0] == "'":         # replace single quote with double
