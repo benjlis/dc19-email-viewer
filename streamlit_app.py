@@ -86,7 +86,7 @@ with st.form(key='query_params'):
 entities = persons + orgs + locations
 selfrom = """select sent, coalesce(subject, '') subject, pg_cnt,
        coalesce(from_email, '') "from", coalesce(to_emails, '') "to",
-       coalesce(topic, '') topic, entities,
+       coalesce(topic, '') topic, /* entities, */
        source_email_url, preview_email_url, scrape_url file_description,
        email_id, file_id, file_pg_start pg_number from covid19.dc19_emails """
 where = f"where sent between '{begin_date}' and '{end_date}' "
