@@ -15,21 +15,20 @@ st.markdown("A finding aid for the emails of \
 [Documenting COVID-19](https://documentingcovid19.io).")
 
 # initialize database connection - uses st.cache to only run once
-@st.cache(allow_output_mutation=True,
-          hash_funcs={"_thread.RLock": lambda _: None})
+@st.cache_resource
 def init_connection():
     return psycopg2.connect(**st.secrets["postgres"])
 
 
 # perform query - ses st.cache to only rerun once
-@st.cache
+@st.cache_data
 def run_query(query):
     with conn.cursor() as cur:
         cur.execute(query)
         return cur.fetchall()
 
 
-@st.cache
+@st.cache_data
 def get_list(qry):
     lov = []
     rows = run_query(qry)
@@ -38,26 +37,31 @@ def get_list(qry):
     return(lov)
 
 
-@st.cache
+@st.cache_data
 def get_entity_list(qual):
     return get_list(f'select entity from covid19.entities \
                          where entity_id > 515 and enttype {qual} \
                          order by entity')
 
 
-@st.cache(hash_funcs={psycopg2.extensions.connection: lambda _: None})
+@st.cache_data
 def get_data_table(qry):
     return pd.read_sql_query(qry, conn)
 
 
 conn = init_connection()
 
-emcnts = """select date(sent) date, count(*) emails from covid19.dc19_emails \
-where sent >= '2020-01-01' group by date order by date"""
+emcnts = """
+select date(sent) date, count(*) emails 
+    from covid19.dc19_emails
+    where sent >= '2020-01-01' 
+    group by date 
+    order by date
+"""
 cntsdf = get_data_table(emcnts)
 c = alt.Chart(cntsdf).mark_bar().encode(
-    x=alt.X('date:T', scale=alt.Scale(domain=('2020-01-01', '2021-06-01'))),
-    y=alt.Y('emails:Q', scale=alt.Scale(domain=(0, 500)))
+     x=alt.X('date:T'),
+     y=alt.Y('emails:Q')
     )
 st.altair_chart(c, use_container_width=True)
 
